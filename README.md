@@ -1,53 +1,47 @@
-# rspleeter
+# rsplitter: Spleeter with Symphonia
 
-Split a song into vocals and accompaniments, taking advantage of machine learning.
+## Overview
+This release replaces rsmpeg with Symphonia, creating a pure Rust implementation for the audio processing pipeline while maintaining compatibility with Spleeter's models for audio source separation.
 
-Rust implementation of [`spleeter`](https://github.com/deezer/spleeter). One of the [`rsmpeg`](https://github.com/larksuite/rsmpeg) demos.
+## Key Changes
 
-Inspired by:
-- https://github.com/deezer/spleeter
-- https://github.com/wudicgi/SpleeterMsvcExe
-- https://github.com/gvne/spleeterpp
+- **Replaced FFmpeg dependency**: Switched from rsmpeg to Symphonia for audio decoding operations
+- **Native WAV encoding**: Implemented a custom Rust-based WAV encoder
+- **Hybrid approach**: Uses pure Rust for core operations while retaining FFmpeg only for specific format conversions
+- **Improved error handling**: Enhanced context for errors with anyhow
 
-MSRV: `1.59.0`
+## Features
 
-You can check the examples we provided.
+- **Multiple separation models**: Support for all standard Spleeter models:
+  - 2stems (vocals/accompaniment)
+  - 4stems (vocals/drums/bass/other)
+  - 5stems (vocals/drums/bass/piano/other)
+  - 16kHz variants of all models
+- **Efficient processing**: Handles audio in 30-second chunks with 5-second overlaps
+- **Format flexibility**: 
+  - Input: Any format supported by Symphonia
+  - Output: WAV (native), MP3/AAC/M4A (via FFmpeg)
+- **Original quality preservation**: Maintains original sample rate and audio parameters
 
-- Original: <https://ldm0.github.io/assets/ten_years.mp3>
-- Vocal: <https://ldm0.github.io/assets/ten_years-vocals.mp3>
-- Accompaniment: <https://ldm0.github.io/assets/ten_years-accompaniment.mp3>
+## Technical Implementation
 
-## Getting started
+- **TensorFlow integration**: Uses the TensorFlow Rust bindings for running Spleeter models
+- **Pure Rust audio decoding**: Leverages Symphonia's capabilities for wide format support
+- **Custom WAV encoder**: Implements the WAVE file format specification directly
+- **Minimal external dependencies**: Only requires FFmpeg for specific output formats
 
-**Attention**: For Windows developers, get prebuilt FFmpeg from the release page or manually cross compile FFmpeg is needed. If you are using Windows, read the next section first.
+## Requirements
 
+- Rust toolchain
+- TensorFlow
+- FFmpeg (optional, only for MP3/AAC/M4A output)
+
+## Basic Usage
 
 ```bash
-# Install `nasm` and `libmp3lame`.
-# macOS
-brew install nasm lame
-# Linux
-sudo apt install nasm libmp3lame-dev
-
-# Prepare pre-trained models
-curl -L -O https://github.com/ldm0/rspleeter/releases/download/0.1.0-models/models.zip
-
-unzip models.zip -d models
-
-# Get a test song.
-curl -O https://ldm0.github.io/assets/ten_years.mp3
-
-# Split the tests song with 2stems model, the output folder is `target/ten_years`.
-# Run `cargo xtask run --release -- --help` for more options.
-cargo xtask run --release -- ten_years.mp3 target/ten_years
+cargo xtask run --release -- input.mp3 output_directory
 ```
 
-Then play the `target/ten_years/accompaniment.mp3`, have fun!
+## Why This Fork?
 
-## FFmpeg dylib
-
-If you find building ffmpeg annoying, you can skip it by using prebuilt FFmpeg. Download prebuilt FFmpeg artifacts from the release page, decompress it and put it under the source folder. (e.g. `./prebuilt_ffmpeg/lib/libffmpeg.dylib`).
-
-When `cargo xtask` find the prebuilt FFmpeg artifacts, it will link against it and skip the FFmpeg building.
-
-If you want to build it manually, check this [doc](doc/build_ffmpeg_dylib_manually.md).
+This fork aims to reduce external dependencies by leveraging Rust's growing audio ecosystem, making the project easier to compile and deploy across different platforms while maintaining full compatibility with the original rsplitter functionality.
