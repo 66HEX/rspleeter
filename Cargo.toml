@@ -13,7 +13,11 @@ anyhow = "1.0.57"
 camino = "1.0.9"
 cstr = "0.2.10"
 once_cell = { version = "1.12.0", features = ["parking_lot"] }
-rsmpeg = "0.11"
+# Remove or comment out rsmpeg
+# rsmpeg = "0.11.0"
+
+# Add symphonia with the features you need
+symphonia = { version = "0.5", features = ["mp3", "wav", "aac", "isomp4"] }
 tensorflow = "0.18.0"
 tracing = "0.1.35"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

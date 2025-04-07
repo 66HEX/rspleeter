@@ -50,10 +50,15 @@ fn main() -> Result<()> {
         decode::decode_audio(audio_path, &pcm_audio_info).context("Decode audio failed.")?;
 
     let samples = pcm_data
-        .chunks_exact(4)
-        .map(|x| x.try_into().unwrap())
-        .map(f32::from_le_bytes)
-        .collect();
+        .chunks_exact(4) 
+        .map(|x| {
+            let bytes: [u8; 4] = x.try_into().unwrap();
+            f32::from_le_bytes(bytes)
+        })
+        .collect::<Vec<f32>>();
+    
+    info!("Decoded {} samples from input audio", samples.len());
+    
     let audio_data = AudioData::new(
         samples,
         pcm_audio_info.nb_channels,
@@ -74,10 +79,17 @@ fn main() -> Result<()> {
     {
         let output_path = out_dir.join(format!("{}.{}", track_name, audio_extension));
         info!("Writing: {}", output_path);
-        let pcm_data: Vec<u8> = pcm_data.iter().map(|x| x.to_le_bytes()).flatten().collect();
-        // std::fs::write(output_path, &sample_data).context("Write pcm file failed.")?;
+        
+        let mut pcm_data_bytes = Vec::with_capacity(pcm_data.len() * 4);
+        for sample in pcm_data.iter() {
+            pcm_data_bytes.extend_from_slice(&sample.to_le_bytes());
+        }
+        
+        info!("Track {} has {} samples ({} bytes)", 
+             track_name, pcm_data.len(), pcm_data_bytes.len());
+        
         encode::encode_pcm_data(
-            &pcm_data,
+            &pcm_data_bytes,
             &pcm_audio_info,
             &original_audio_parameters,
             &output_path,
